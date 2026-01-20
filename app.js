@@ -365,8 +365,19 @@ function handleApplySettings() {
 
 // Sync with Firebase
 function syncWithFirebase() {
+    // Monitor connection state
+    const connectedRef = database.ref(".info/connected");
+    connectedRef.on("value", (snap) => {
+        if (snap.val() === true) {
+            console.log("Firebase Connected!");
+        } else {
+            console.log("Firebase Disconnected!");
+        }
+    });
+
     sessionRef.on('value', (snapshot) => {
         const data = snapshot.val();
+        console.log("Received Firebase data:", data);
 
         if (!data) {
             // Initialize Firebase with default state
