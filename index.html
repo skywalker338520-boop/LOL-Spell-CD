@@ -8,9 +8,11 @@
     <!-- iOS Standalone Mode -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="LOL Spell Tracker">
+    <meta name="apple-mobile-web-app-title" content="Spell Tracker">
 
-    <title>LOL Summoner Spell Tracker</title>
+    <title>Spell Tracker</title>
+
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -165,7 +167,7 @@
     <div id="start-overlay"
         class="fixed inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center z-50">
         <div class="text-center px-6">
-            <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">LOL Spell Tracker</h1>
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">Spell Tracker</h1>
             <p class="text-gray-300 mb-8 text-lg">Legends Never Die</p>
             <button id="start-btn"
                 class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold text-xl px-12 py-4 rounded-xl shadow-2xl transform transition hover:scale-105 active:scale-95">
@@ -179,7 +181,7 @@
 
         <!-- Header -->
         <header class="flex items-center justify-between mb-1 shrink-0">
-            <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">記得報技能CD</h2>
+            <h2 class="text-2xl md:text-4xl font-black text-white tracking-tight">記得報技能CD</h2>
             <button id="settings-btn"
                 class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded-lg transition text-xs">
                 ⚙️
@@ -191,7 +193,7 @@
 
             <!-- TOP -->
             <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
-                <div class="w-24 md:w-32">
+                <div class="w-24 md:w-32 flex flex-col items-center justify-center">
                     <div class="text-3xl md:text-4xl font-bold text-cyan-400">TOP</div>
                     <div class="flex gap-1 mt-0.5">
                         <span class="haste-dot inactive" data-role="top" data-haste="ionian"></span>
@@ -220,7 +222,7 @@
 
             <!-- JG -->
             <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
-                <div class="w-24 md:w-32">
+                <div class="w-24 md:w-32 flex flex-col items-center justify-center">
                     <div class="text-3xl md:text-4xl font-bold text-green-400">JG</div>
                     <div class="flex gap-1 mt-0.5">
                         <span class="haste-dot inactive" data-role="jg" data-haste="ionian"></span>
@@ -249,7 +251,7 @@
 
             <!-- MID -->
             <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
-                <div class="w-24 md:w-32">
+                <div class="w-24 md:w-32 flex flex-col items-center justify-center">
                     <div class="text-3xl md:text-4xl font-bold text-purple-400">MID</div>
                     <div class="flex gap-1 mt-0.5">
                         <span class="haste-dot inactive" data-role="mid" data-haste="ionian"></span>
@@ -277,7 +279,7 @@
 
             <!-- AD -->
             <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
-                <div class="w-24 md:w-32">
+                <div class="w-24 md:w-32 flex flex-col items-center justify-center">
                     <div class="text-3xl md:text-4xl font-bold text-red-400">AD</div>
                     <div class="flex gap-1 mt-0.5">
                         <span class="haste-dot inactive" data-role="ad" data-haste="ionian"></span>
@@ -306,7 +308,7 @@
 
             <!-- SUP -->
             <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
-                <div class="w-24 md:w-32">
+                <div class="w-24 md:w-32 flex flex-col items-center justify-center">
                     <div class="text-3xl md:text-4xl font-bold text-yellow-400">SUP</div>
                     <div class="flex gap-1 mt-0.5">
                         <span class="haste-dot inactive" data-role="sup" data-haste="ionian"></span>
@@ -409,11 +411,13 @@
             <div class="mb-6">
                 <h4 class="text-lg font-bold text-purple-400 mb-3">加速符文</h4>
                 <div class="space-y-2">
-                    <label class="flex items-center gap-3 cursor-pointer">
+                    <label
+                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition">
                         <input type="checkbox" id="ionian-boots" class="w-5 h-5 accent-purple-500">
                         <span class="text-white">艾歐尼亞靴 (+10 加速)</span>
                     </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
+                    <label
+                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition">
                         <input type="checkbox" id="cosmic-insight" class="w-5 h-5 accent-purple-500">
                         <span class="text-white">星界洞悉 (+18 加速)</span>
                     </label>

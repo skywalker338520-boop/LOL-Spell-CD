@@ -1,4 +1,4 @@
-# LOL Summoner Spell Tracker
+# Spell Tracker
 
 **League of Legends 召喚師技能追蹤器** —— 專為 iPhone 16 Pro Max 優化的多設備即時同步應用。
 
@@ -86,7 +86,7 @@ npx http-server -p 8080
 1. 在 Safari 開啟應用
 2. 點擊「分享」按鈕 (底部中間)
 3. 選擇「加入主畫面」
-4. 命名為「LOL Spell Tracker」
+4. 命名為「Spell Tracker」
 5. 從主畫面啟動應用（無位址欄，完整螢幕體驗）
 
 ## 🎮 使用方式

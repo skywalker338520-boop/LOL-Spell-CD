@@ -365,7 +365,7 @@ function handleLongPressStart(btn) {
 
     longPressTimers[key] = setTimeout(() => {
         handleSpellReset(btn, key);
-    }, 2000);
+    }, 1000);
 }
 
 // Handle long press end
