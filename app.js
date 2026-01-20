@@ -94,12 +94,14 @@ function initializeDefaultState() {
         spellStates[`${role}-1`] = {
             spell: defaultSpells[role],
             cooldown: 0,
-            isOnCooldown: false
+            isOnCooldown: false,
+            lastResetTime: 0
         };
         spellStates[`${role}-2`] = {
             spell: 'SummonerFlash',
             cooldown: 0,
-            isOnCooldown: false
+            isOnCooldown: false,
+            lastResetTime: 0
         };
     });
 }
@@ -156,6 +158,13 @@ function handleSpellClick(btn) {
 
     // Don't start if already on cooldown
     if (state.isOnCooldown) return;
+
+    // Prevent misclick after reset (500ms cooldown)
+    const now = Date.now();
+    if (state.lastResetTime && (now - state.lastResetTime) < 500) {
+        console.log('Ignoring click - too soon after reset');
+        return;
+    }
 
     // Calculate cooldown with haste
     const baseCooldown = SPELL_COOLDOWNS[state.spell];
@@ -311,6 +320,7 @@ function handleSpellReset(btn, key) {
     // Reset state
     state.isOnCooldown = false;
     state.cooldown = 0;
+    state.lastResetTime = Date.now(); // Record reset time to prevent misclick
 
     // Remove overlay
     const overlay = btn.querySelector('.cooldown-overlay');
