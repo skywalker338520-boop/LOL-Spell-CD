@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- iOS Standalone Mode -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LOL Spell Tracker">
+
+    <title>LOL Summoner Spell Tracker</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        /* 100dvh for iOS Safari */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100dvh;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Warning animation - subtle fade */
+        @keyframes fade-warning {
+
+            0%,
+            100% {
+                opacity: 0.95;
+            }
+
+            50% {
+                opacity: 0.75;
+            }
+        }
+
+        .fade-warning {
+            animation: fade-warning 1s ease-in-out infinite;
+        }
+
+        /* Spell icon styles */
+        .spell-icon {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            filter: brightness(1);
+            transition: filter 0.2s ease;
+        }
+
+        .spell-icon.on-cooldown {
+            filter: brightness(0.4) grayscale(0.3);
+        }
+
+        /* Cooldown overlay container */
+        .cooldown-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Waterfall grey background */
+        .waterfall-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 30, 30, 0.9);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Timer display */
+        .cooldown-timer {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Progress ring container - removed */
+        .timer-progress {
+            display: none;
+        }
+
+        .timer-progress-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 2px;
+            transition: width 1s linear;
+        }
+
+        /* Modal backdrop */
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        /* Prevent text selection */
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Responsive font sizing */
+        @media (max-width: 390px) {
+            .cooldown-timer {
+                font-size: 2.5rem;
+                height: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
+
+    <!-- Start Match Overlay (Audio Unlock) -->
+    <div id="start-overlay"
+        class="fixed inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center z-50">
+        <div class="text-center px-6">
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">LOL Spell Tracker</h1>
+            <p class="text-gray-300 mb-8 text-lg">Legends Never Die</p>
+            <button id="start-btn"
+                class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold text-xl px-12 py-4 rounded-xl shadow-2xl transform transition hover:scale-105 active:scale-95">
+                嬴多鋪先瞓啦
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="hidden h-full flex flex-col p-4 md:p-6">
+
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">記得要同大家報CD</h2>
+            <button id="settings-btn"
+                class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-4 py-2 rounded-lg transition">
+                ⚙️
+            </button>
+        </header>
+
+        <!-- Spell Grid (5 Rows x 3 Cols) -->
+        <div class="flex-1 flex flex-col justify-around gap-3 md:gap-4">
+
+            <!-- TOP -->
+            <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
+                <div class="text-xl md:text-2xl font-bold text-cyan-400 w-16 md:w-20">TOP</div>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                    data-role="top" data-spell="1">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerTeleport.png"
+                        alt="Teleport">
+                </button>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                    data-role="top" data-spell="2">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
+                </button>
+            </div>
+
+            <!-- JG -->
+            <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
+                <div class="text-xl md:text-2xl font-bold text-green-400 w-16 md:w-20">JG</div>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                    data-role="jg" data-spell="1">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerSmite.png" alt="Smite">
+                </button>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                    data-role="jg" data-spell="2">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
+                </button>
+            </div>
+
+            <!-- MID -->
+            <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
+                <div class="text-xl md:text-2xl font-bold text-purple-400 w-16 md:w-20">MID</div>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                    data-role="mid" data-spell="1">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerDot.png" alt="Ignite">
+                </button>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                    data-role="mid" data-spell="2">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
+                </button>
+            </div>
+
+            <!-- AD -->
+            <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
+                <div class="text-xl md:text-2xl font-bold text-red-400 w-16 md:w-20">AD</div>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                    data-role="ad" data-spell="1">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerBarrier.png"
+                        alt="Barrier">
+                </button>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                    data-role="ad" data-spell="2">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
+                </button>
+            </div>
+
+            <!-- SUP -->
+            <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
+                <div class="text-xl md:text-2xl font-bold text-yellow-400 w-16 md:w-20">SUP</div>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                    data-role="sup" data-spell="1">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerExhaust.png"
+                        alt="Exhaust">
+                </button>
+                <button
+                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                    data-role="sup" data-spell="2">
+                    <img class="spell-icon"
+                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center z-40 p-4">
+        <div
+            class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 border border-slate-700">
+
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-black text-white">設定</h3>
+                <button id="close-settings-btn"
+                    class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+
+            <!-- Spell Selection -->
+            <div class="mb-6">
+                <h4 class="text-lg font-bold text-cyan-400 mb-3">更換技能</h4>
+                <div class="space-y-2">
+                    <select id="spell-role-select" class="w-full bg-slate-700 text-white rounded-lg px-4 py-2 mb-2">
+                        <option value="top">TOP</option>
+                        <option value="jg">JG</option>
+                        <option value="mid">MID</option>
+                        <option value="ad">AD</option>
+                        <option value="sup">SUP</option>
+                    </select>
+
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="spell-option p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
+                            data-spell="SummonerTeleport">
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerTeleport.png"
+                                alt="TP" class="w-full rounded">
+                        </button>
+                        <button class="spell-option p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
+                            data-spell="SummonerSmite">
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerSmite.png"
+                                alt="Smite" class="w-full rounded">
+                        </button>
+                        <button class="spell-option p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
+                            data-spell="SummonerDot">
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerDot.png"
+                                alt="Ignite" class="w-full rounded">
+                        </button>
+                        <button class="spell-option p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
+                            data-spell="SummonerExhaust">
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerExhaust.png"
+                                alt="Exhaust" class="w-full rounded">
+                        </button>
+                        <button class="spell-option p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
+                            data-spell="SummonerHaste">
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerHaste.png"
+                                alt="Ghost" class="w-full rounded">
+                        </button>
+                        <button class="spell-option p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
+                            data-spell="SummonerHeal">
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerHeal.png"
+                                alt="Heal" class="w-full rounded">
+                        </button>
+                        <button class="spell-option p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
+                            data-spell="SummonerBarrier">
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerBarrier.png"
+                                alt="Barrier" class="w-full rounded">
+                        </button>
+                        <button class="spell-option p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
+                            data-spell="SummonerBoost">
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerBoost.png"
+                                alt="Cleanse" class="w-full rounded">
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Haste Modifiers -->
+            <div class="mb-6">
+                <h4 class="text-lg font-bold text-purple-400 mb-3">加速符文</h4>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="ionian-boots" class="w-5 h-5 accent-purple-500">
+                        <span class="text-white">艾歐尼亞靴 (+10 加速)</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="cosmic-insight" class="w-5 h-5 accent-purple-500">
+                        <span class="text-white">星界洞悉 (+18 加速)</span>
+                    </label>
+                </div>
+            </div>
+
+            <button id="apply-settings-btn"
+                class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 rounded-xl transition transform hover:scale-105 active:scale-95">
+                套用設定
+            </button>
+
+        </div>
+    </div>
+
+    <!-- Audio Elements (Hidden) -->
+    <audio id="warning-sound" preload="auto">
+        <source src="sounds/warning.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="ready-sound" preload="auto">
+        <source src="sounds/ready.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="firebase-config.js"></script>
+    <script src="app.js" type="module"></script>
+
+</body>
+
+</html>

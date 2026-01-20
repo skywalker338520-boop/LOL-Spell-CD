@@ -1,0 +1,434 @@
+import { database, sessionRef, SESSION_ID } from './firebase-config.js';
+
+// Spell base cooldowns (seconds)
+const SPELL_COOLDOWNS = {
+    SummonerFlash: 300,
+    SummonerTeleport: 360,
+    SummonerDot: 180,         // Ignite
+    SummonerExhaust: 210,
+    SummonerHaste: 240,       // Ghost
+    SummonerHeal: 240,
+    SummonerBarrier: 180,
+    SummonerBoost: 210,       // Cleanse
+    SummonerSmite: 15
+};
+
+// App state
+let audioContext = null;
+let wakeLock = null;
+let isAudioUnlocked = false;
+let spellStates = {};
+let timers = {};
+let longPressTimers = {};
+let hasteModifiers = {
+    ionianBoots: false,
+    cosmicInsight: false
+};
+
+// DOM Elements
+const startOverlay = document.getElementById('start-overlay');
+const startBtn = document.getElementById('start-btn');
+const appContainer = document.getElementById('app-container');
+const settingsBtn = document.getElementById('settings-btn');
+const settingsModal = document.getElementById('settings-modal');
+const closeSettingsBtn = document.getElementById('close-settings-btn');
+const applySettingsBtn = document.getElementById('apply-settings-btn');
+const spellRoleSelect = document.getElementById('spell-role-select');
+const spellOptions = document.querySelectorAll('.spell-option');
+const ionianBootsCheckbox = document.getElementById('ionian-boots');
+const cosmicInsightCheckbox = document.getElementById('cosmic-insight');
+const warningSound = document.getElementById('warning-sound');
+const readySound = document.getElementById('ready-sound');
+
+// Initialize app
+function init() {
+    // Initialize default state
+    initializeDefaultState();
+
+    // Event listeners
+    startBtn.addEventListener('click', handleStartMatch);
+    settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+    closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+    applySettingsBtn.addEventListener('click', handleApplySettings);
+
+    // Spell buttons
+    document.querySelectorAll('.spell-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => handleSpellClick(e.currentTarget));
+
+        // Long press to reset
+        btn.addEventListener('touchstart', (e) => handleLongPressStart(e.currentTarget));
+        btn.addEventListener('touchend', (e) => handleLongPressEnd(e.currentTarget));
+        btn.addEventListener('mousedown', (e) => handleLongPressStart(e.currentTarget));
+        btn.addEventListener('mouseup', (e) => handleLongPressEnd(e.currentTarget));
+    });
+
+    // Spell options in settings
+    spellOptions.forEach(option => {
+        option.addEventListener('click', () => handleSpellChange(option.dataset.spell));
+    });
+
+    // Haste modifiers
+    ionianBootsCheckbox.addEventListener('change', (e) => {
+        hasteModifiers.ionianBoots = e.target.checked;
+    });
+    cosmicInsightCheckbox.addEventListener('change', (e) => {
+        hasteModifiers.cosmicInsight = e.target.checked;
+    });
+
+    // Firebase sync
+    syncWithFirebase();
+}
+
+// Initialize default spell state
+function initializeDefaultState() {
+    const roles = ['top', 'jg', 'mid', 'ad', 'sup'];
+    const defaultSpells = {
+        top: 'SummonerTeleport',
+        jg: 'SummonerSmite',
+        mid: 'SummonerDot',
+        ad: 'SummonerBarrier',
+        sup: 'SummonerExhaust'
+    };
+
+    roles.forEach(role => {
+        spellStates[`${role}-1`] = {
+            spell: defaultSpells[role],
+            cooldown: 0,
+            isOnCooldown: false
+        };
+        spellStates[`${role}-2`] = {
+            spell: 'SummonerFlash',
+            cooldown: 0,
+            isOnCooldown: false
+        };
+    });
+}
+
+// Handle Start Match (Audio Unlock)
+async function handleStartMatch() {
+    // Unlock audio context
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    await audioContext.resume();
+    isAudioUnlocked = true;
+
+    // Test play sounds to ensure they're loaded
+    warningSound.volume = 0.01;
+    warningSound.play().then(() => warningSound.pause()).catch(() => { });
+    readySound.volume = 0.01;
+    readySound.play().then(() => readySound.pause()).catch(() => { });
+
+    // Reset volumes
+    setTimeout(() => {
+        warningSound.volume = 1;
+        readySound.volume = 1;
+    }, 100);
+
+    // Request wake lock
+    await requestWakeLock();
+
+    // Show app
+    startOverlay.classList.add('hidden');
+    appContainer.classList.remove('hidden');
+}
+
+// Request Wake Lock API
+async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Wake Lock activated');
+
+            wakeLock.addEventListener('release', () => {
+                console.log('Wake Lock released');
+            });
+        } catch (err) {
+            console.error('Wake Lock error:', err);
+        }
+    }
+}
+
+// Handle spell click (start cooldown)
+function handleSpellClick(btn) {
+    const role = btn.dataset.role;
+    const spellSlot = btn.dataset.spell;
+    const key = `${role}-${spellSlot}`;
+    const state = spellStates[key];
+
+    // Don't start if already on cooldown
+    if (state.isOnCooldown) return;
+
+    // Calculate cooldown with haste
+    const baseCooldown = SPELL_COOLDOWNS[state.spell];
+    const totalHaste = (hasteModifiers.ionianBoots ? 10 : 0) + (hasteModifiers.cosmicInsight ? 18 : 0);
+    const actualCooldown = Math.round(baseCooldown * (100 / (100 + totalHaste)));
+
+    // Update state
+    state.isOnCooldown = true;
+    state.cooldown = actualCooldown;
+
+    // Sync to Firebase
+    sessionRef.child(key).set(state);
+
+    // Start timer
+    startCooldownTimer(btn, key, actualCooldown);
+}
+
+// Start cooldown timer
+function startCooldownTimer(btn, key, duration) {
+    let remaining = duration;
+    const state = spellStates[key];
+
+    // Clear existing timer
+    if (timers[key]) {
+        clearInterval(timers[key]);
+    }
+
+    // Darken spell icon
+    const spellIcon = btn.querySelector('.spell-icon');
+    if (spellIcon) {
+        spellIcon.classList.add('on-cooldown');
+    }
+
+    // Create overlay
+    let overlay = btn.querySelector('.cooldown-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'cooldown-overlay';
+
+        // Waterfall background
+        const waterfallBg = document.createElement('div');
+        waterfallBg.className = 'waterfall-bg';
+        overlay.appendChild(waterfallBg);
+
+        // Timer text
+        const timerText = document.createElement('div');
+        timerText.className = 'cooldown-timer';
+        overlay.appendChild(timerText);
+
+        btn.appendChild(overlay);
+    }
+
+    const timerText = overlay.querySelector('.cooldown-timer');
+    const waterfallBg = overlay.querySelector('.waterfall-bg');
+
+    // Update display immediately
+    timerText.textContent = remaining;
+    if (waterfallBg) {
+        waterfallBg.style.height = '100%';
+    }
+
+    timers[key] = setInterval(() => {
+        remaining--;
+        state.cooldown = remaining;
+
+        // Update display
+        timerText.textContent = remaining;
+
+        // Waterfall effect: reduce height from 100% to 0%
+        if (waterfallBg) {
+            const progress = remaining / duration;
+            const heightPercentage = progress * 100;
+            waterfallBg.style.height = `${heightPercentage}%`;
+        }
+
+        // 30s warning - subtle fade effect
+        if (remaining === 30) {
+            overlay.classList.add('fade-warning');
+            playSound(warningSound);
+        }
+
+        // Ready
+        if (remaining <= 0) {
+            clearInterval(timers[key]);
+            delete timers[key];
+
+            state.isOnCooldown = false;
+            state.cooldown = 0;
+
+            // Remove overlay and restore icon
+            overlay.remove();
+            if (spellIcon) {
+                spellIcon.classList.remove('on-cooldown');
+            }
+
+            // Play ready sound
+            playSound(readySound);
+
+            // Sync to Firebase
+            sessionRef.child(key).set(state);
+        } else {
+            // Sync every 5 seconds
+            if (remaining % 5 === 0) {
+                sessionRef.child(key).set(state);
+            }
+        }
+    }, 1000);
+}
+
+// Play sound
+function playSound(audioElement) {
+    if (!isAudioUnlocked) return;
+
+    audioElement.currentTime = 0;
+    audioElement.play().catch(err => {
+        console.error('Audio play error:', err);
+    });
+}
+
+// Handle long press start
+function handleLongPressStart(btn) {
+    const role = btn.dataset.role;
+    const spellSlot = btn.dataset.spell;
+    const key = `${role}-${spellSlot}`;
+
+    longPressTimers[key] = setTimeout(() => {
+        handleSpellReset(btn, key);
+    }, 2000);
+}
+
+// Handle long press end
+function handleLongPressEnd(btn) {
+    const role = btn.dataset.role;
+    const spellSlot = btn.dataset.spell;
+    const key = `${role}-${spellSlot}`;
+
+    if (longPressTimers[key]) {
+        clearTimeout(longPressTimers[key]);
+        delete longPressTimers[key];
+    }
+}
+
+// Reset spell
+function handleSpellReset(btn, key) {
+    const state = spellStates[key];
+
+    // Clear timer
+    if (timers[key]) {
+        clearInterval(timers[key]);
+        delete timers[key];
+    }
+
+    // Reset state
+    state.isOnCooldown = false;
+    state.cooldown = 0;
+
+    // Remove overlay
+    const overlay = btn.querySelector('.cooldown-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+
+    // Restore icon brightness
+    const spellIcon = btn.querySelector('.spell-icon');
+    if (spellIcon) {
+        spellIcon.classList.remove('on-cooldown');
+    }
+
+    // Sync to Firebase
+    sessionRef.child(key).set(state);
+
+    // Visual feedback
+    btn.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        btn.style.transform = '';
+    }, 200);
+}
+
+// Handle spell change in settings
+function handleSpellChange(spellName) {
+    const role = spellRoleSelect.value;
+    const key = `${role}-1`;
+
+    spellStates[key].spell = spellName;
+
+    // Update UI
+    const btn = document.querySelector(`.spell-btn[data-role="${role}"][data-spell="1"]`);
+    const img = btn.querySelector('.spell-icon');
+    img.src = `https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/${spellName}.png`;
+    img.alt = spellName;
+
+    // Sync to Firebase
+    sessionRef.child(key).set(spellStates[key]);
+
+    // Visual feedback
+    spellOptions.forEach(opt => opt.classList.remove('ring-2', 'ring-cyan-400'));
+    event.target.closest('.spell-option').classList.add('ring-2', 'ring-cyan-400');
+}
+
+// Apply settings
+function handleApplySettings() {
+    // Sync haste modifiers to Firebase
+    sessionRef.child('hasteModifiers').set(hasteModifiers);
+
+    settingsModal.classList.add('hidden');
+}
+
+// Sync with Firebase
+function syncWithFirebase() {
+    sessionRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+
+        if (!data) {
+            // Initialize Firebase with default state
+            sessionRef.set({
+                ...spellStates,
+                hasteModifiers
+            });
+            return;
+        }
+
+        // Update local state
+        Object.keys(spellStates).forEach(key => {
+            if (data[key]) {
+                const remoteState = data[key];
+                const localState = spellStates[key];
+
+                // Update spell if changed
+                if (remoteState.spell !== localState.spell) {
+                    localState.spell = remoteState.spell;
+
+                    const [role, slot] = key.split('-');
+                    const btn = document.querySelector(`.spell-btn[data-role="${role}"][data-spell="${slot}"]`);
+                    const img = btn.querySelector('.spell-icon');
+                    img.src = `https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/${remoteState.spell}.png`;
+                }
+
+                // Sync cooldown state
+                if (remoteState.isOnCooldown && !localState.isOnCooldown) {
+                    // Remote started cooldown
+                    localState.isOnCooldown = true;
+                    localState.cooldown = remoteState.cooldown;
+
+                    const [role, slot] = key.split('-');
+                    const btn = document.querySelector(`.spell-btn[data-role="${role}"][data-spell="${slot}"]`);
+                    startCooldownTimer(btn, key, remoteState.cooldown);
+                } else if (!remoteState.isOnCooldown && localState.isOnCooldown) {
+                    // Remote reset
+                    handleSpellReset(
+                        document.querySelector(`.spell-btn[data-role="${key.split('-')[0]}"][data-spell="${key.split('-')[1]}"]`),
+                        key
+                    );
+                }
+            }
+        });
+
+        // Sync haste modifiers
+        if (data.hasteModifiers) {
+            hasteModifiers.ionianBoots = data.hasteModifiers.ionianBoots || false;
+            hasteModifiers.cosmicInsight = data.hasteModifiers.cosmicInsight || false;
+
+            ionianBootsCheckbox.checked = hasteModifiers.ionianBoots;
+            cosmicInsightCheckbox.checked = hasteModifiers.cosmicInsight;
+        }
+    });
+}
+
+// Re-acquire wake lock on visibility change
+document.addEventListener('visibilitychange', async () => {
+    if (wakeLock !== null && document.visibilityState === 'visible') {
+        await requestWakeLock();
+    }
+});
+
+// Initialize on load
+init();
