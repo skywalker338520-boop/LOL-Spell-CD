@@ -52,7 +52,7 @@ function init() {
 
     // Event listeners
     startBtn.addEventListener('click', handleStartMatch);
-    settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+    settingsBtn.addEventListener('click', openSettings);
     closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
     applySettingsBtn.addEventListener('click', handleApplySettings);
 
@@ -99,6 +99,19 @@ function init() {
 
     // Initialize haste indicators
     updateHasteIndicators();
+}
+
+// Open settings and initialize UI
+function openSettings() {
+    settingsModal.classList.remove('hidden');
+
+    // Trigger update based on current selection
+    const role = spellRoleSelect.value;
+    ionianBootsCheckbox.checked = hasteModifiers[role].ionian;
+    cosmicInsightCheckbox.checked = hasteModifiers[role].cosmic;
+
+    // Highlight current spells
+    renderSpellOptions(role);
 }
 
 // Initialize default spell state

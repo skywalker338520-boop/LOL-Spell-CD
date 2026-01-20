@@ -178,8 +178,8 @@
     <div id="app-container" class="hidden h-full flex flex-col p-3 md:p-6">
 
         <!-- Header -->
-        <header class="flex items-center justify-between mb-1.5">
-            <h2 class="text-base md:text-3xl font-black text-white tracking-tight">記得同大家報技能CD</h2>
+        <header class="flex items-center justify-between mb-1 shrink-0">
+            <h2 class="text-base md:text-3xl font-black text-white tracking-tight">記得報技能CD</h2>
             <button id="settings-btn"
                 class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded-lg transition text-xs">
                 ⚙️
@@ -198,19 +198,24 @@
                         <span class="haste-dot inactive" data-role="top" data-haste="cosmic"></span>
                     </div>
                 </div>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
-                    data-role="top" data-spell="1">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerTeleport.png"
-                        alt="Teleport">
-                </button>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
-                    data-role="top" data-spell="2">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
-                </button>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                        data-role="top" data-spell="1">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerTeleport.png"
+                            alt="Teleport">
+                    </button>
+                </div>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                        data-role="top" data-spell="2">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png"
+                            alt="Flash">
+                    </button>
+                </div>
             </div>
 
             <!-- JG -->
@@ -222,18 +227,24 @@
                         <span class="haste-dot inactive" data-role="jg" data-haste="cosmic"></span>
                     </div>
                 </div>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
-                    data-role="jg" data-spell="1">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerSmite.png" alt="Smite">
-                </button>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
-                    data-role="jg" data-spell="2">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
-                </button>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                        data-role="jg" data-spell="1">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerSmite.png"
+                            alt="Smite">
+                    </button>
+                </div>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                        data-role="jg" data-spell="2">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png"
+                            alt="Flash">
+                    </button>
+                </div>
             </div>
 
             <!-- MID -->
@@ -245,18 +256,23 @@
                         <span class="haste-dot inactive" data-role="mid" data-haste="cosmic"></span>
                     </div>
                 </div>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
-                    data-role="mid" data-spell="1">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerDot.png" alt="Ignite">
-                </button>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
-                    data-role="mid" data-spell="2">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
-                </button>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                        data-role="mid" data-spell="1">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerDot.png" alt="Ignite">
+                    </button>
+                </div>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                        data-role="mid" data-spell="2">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png"
+                            alt="Flash">
+                    </button>
+                </div>
             </div>
 
             <!-- AD -->
@@ -268,19 +284,24 @@
                         <span class="haste-dot inactive" data-role="ad" data-haste="cosmic"></span>
                     </div>
                 </div>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
-                    data-role="ad" data-spell="1">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerBarrier.png"
-                        alt="Barrier">
-                </button>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
-                    data-role="ad" data-spell="2">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
-                </button>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                        data-role="ad" data-spell="1">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerBarrier.png"
+                            alt="Barrier">
+                    </button>
+                </div>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                        data-role="ad" data-spell="2">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png"
+                            alt="Flash">
+                    </button>
+                </div>
             </div>
 
             <!-- SUP -->
@@ -292,19 +313,24 @@
                         <span class="haste-dot inactive" data-role="sup" data-haste="cosmic"></span>
                     </div>
                 </div>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
-                    data-role="sup" data-spell="1">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerExhaust.png"
-                        alt="Exhaust">
-                </button>
-                <button
-                    class="spell-btn relative aspect-square bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
-                    data-role="sup" data-spell="2">
-                    <img class="spell-icon"
-                        src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png" alt="Flash">
-                </button>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-cyan-500 transition"
+                        data-role="sup" data-spell="1">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerExhaust.png"
+                            alt="Exhaust">
+                    </button>
+                </div>
+                <div class="relative w-full aspect-square">
+                    <button
+                        class="spell-btn absolute inset-0 bg-slate-800 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-yellow-500 transition"
+                        data-role="sup" data-spell="2">
+                        <img class="spell-icon"
+                            src="https://ddragon.leagueoflegends.com/cdn/14.1.1/img/spell/SummonerFlash.png"
+                            alt="Flash">
+                    </button>
+                </div>
             </div>
 
         </div>
