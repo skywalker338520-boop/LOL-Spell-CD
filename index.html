@@ -27,8 +27,10 @@
         body {
             margin: 0;
             padding: 0;
-            height: 100dvh;
-            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            min-height: 100dvh;
+            overflow-y: auto;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
             -webkit-user-select: none;
@@ -177,7 +179,7 @@
     </div>
 
     <!-- Main App Container -->
-    <div id="app-container" class="hidden h-full flex flex-col p-3 md:p-6">
+    <div id="app-container" class="hidden min-h-full flex flex-col p-3 md:p-6">
 
         <!-- Header -->
         <header class="flex items-center justify-between mb-1 shrink-0">
@@ -189,13 +191,13 @@
         </header>
 
         <!-- Spell Grid (5 Rows x 3 Cols) -->
-        <div class="flex-1 flex flex-col justify-around gap-1 md:gap-4 max-h-full overflow-hidden">
+        <div class="flex-1 flex flex-col justify-around gap-1 md:gap-4 max-h-full">
 
             <!-- TOP -->
             <div class="grid grid-cols-[auto_1fr_1fr] gap-2 md:gap-3 items-center">
                 <div class="w-24 md:w-32 flex flex-col items-center justify-center">
                     <div class="text-3xl md:text-4xl font-bold text-cyan-400">TOP</div>
-                    <div class="flex gap-1 mt-0.5">
+                    <div class="flex gap-1 mt-3">
                         <span class="haste-dot inactive" data-role="top" data-haste="ionian"></span>
                         <span class="haste-dot inactive" data-role="top" data-haste="cosmic"></span>
                     </div>
@@ -412,12 +414,12 @@
                 <h4 class="text-lg font-bold text-purple-400 mb-3">加速符文</h4>
                 <div class="space-y-2">
                     <label
-                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition">
+                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg active:bg-slate-700 md:hover:bg-slate-700 transition">
                         <input type="checkbox" id="ionian-boots" class="w-5 h-5 accent-purple-500">
                         <span class="text-white">艾歐尼亞靴 (+10 加速)</span>
                     </label>
                     <label
-                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition">
+                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg active:bg-slate-700 md:hover:bg-slate-700 transition">
                         <input type="checkbox" id="cosmic-insight" class="w-5 h-5 accent-purple-500">
                         <span class="text-white">星界洞悉 (+18 加速)</span>
                     </label>
