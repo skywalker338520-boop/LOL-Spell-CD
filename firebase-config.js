@@ -1,13 +1,13 @@
 // Firebase Configuration
 // TODO: Replace with your actual Firebase project credentials
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAD1lYgWyNHGer-rPjJegixTJearoPS5io",
+  authDomain: "lol-spell-cd.firebaseapp.com",
+  databaseURL: "https://lol-spell-cd-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lol-spell-cd",
+  storageBucket: "lol-spell-cd.firebasestorage.app",
+  messagingSenderId: "496008473231",
+  appId: "1:496008473231:web:a07c259414242965549efa"
 };
 
 // Initialize Firebase
