@@ -36,6 +36,7 @@ const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const closeSettingsBtn = document.getElementById('close-settings-btn');
 const applySettingsBtn = document.getElementById('apply-settings-btn');
+const resetAllBtn = document.getElementById('reset-all-btn');
 const spellRoleSelect = document.getElementById('spell-role-select');
 const spellOptions = document.querySelectorAll('.spell-option');
 const ionianBootsCheckbox = document.getElementById('ionian-boots');
@@ -55,6 +56,7 @@ function init() {
     settingsBtn.addEventListener('click', openSettings);
     closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
     applySettingsBtn.addEventListener('click', handleApplySettings);
+    resetAllBtn.addEventListener('click', handleResetAll);
 
     // Spell buttons
     document.querySelectorAll('.spell-btn').forEach(btn => {
@@ -446,6 +448,34 @@ function handleApplySettings() {
     settingsModal.classList.add('hidden');
 }
 
+// Reset All (Spells, Runes, Cooldowns)
+function handleResetAll() {
+    if (!confirm('確定要重置所有狀態嗎？\n\n這將會：\n1. 還原所有技能為預設值\n2. 清除所有冷卻時間\n3. 重置所有符文設定')) {
+        return;
+    }
+
+    // Reset local state to defaults
+    initializeDefaultState();
+
+    // Reset haste modifiers
+    hasteModifiers = {
+        top: { ionian: false, cosmic: false },
+        jg: { ionian: false, cosmic: false },
+        mid: { ionian: false, cosmic: false },
+        ad: { ionian: false, cosmic: false },
+        sup: { ionian: false, cosmic: false }
+    };
+
+    // Push to Firebase (this will trigger the UI update via syncWithFirebase)
+    sessionRef.set({
+        ...spellStates,
+        hasteModifiers
+    });
+
+    // Close settings
+    settingsModal.classList.add('hidden');
+}
+
 // Sync with Firebase
 function syncWithFirebase() {
     // Monitor connection state
@@ -475,6 +505,13 @@ function syncWithFirebase() {
         if (data.hasteModifiers) {
             hasteModifiers = data.hasteModifiers;
             updateHasteIndicators();
+
+            // Update checkboxes for currently selected role
+            const currentRole = spellRoleSelect.value;
+            if (currentRole && hasteModifiers[currentRole]) {
+                ionianBootsCheckbox.checked = hasteModifiers[currentRole].ionian;
+                cosmicInsightCheckbox.checked = hasteModifiers[currentRole].cosmic;
+            }
         }
 
         // Update local state
@@ -511,15 +548,6 @@ function syncWithFirebase() {
                 }
             }
         });
-
-        // Sync haste modifiers
-        if (data.hasteModifiers) {
-            hasteModifiers.ionianBoots = data.hasteModifiers.ionianBoots || false;
-            hasteModifiers.cosmicInsight = data.hasteModifiers.cosmicInsight || false;
-
-            ionianBootsCheckbox.checked = hasteModifiers.ionianBoots;
-            cosmicInsightCheckbox.checked = hasteModifiers.cosmicInsight;
-        }
     });
 }
 

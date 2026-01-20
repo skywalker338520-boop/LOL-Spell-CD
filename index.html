@@ -417,12 +417,12 @@
                 <h4 class="text-lg font-bold text-purple-400 mb-3">加速符文</h4>
                 <div class="space-y-2">
                     <label
-                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg active:bg-slate-700 md:hover:bg-slate-700 transition">
+                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg active:bg-slate-700 transition">
                         <input type="checkbox" id="ionian-boots" class="w-5 h-5 accent-purple-500">
                         <span class="text-white">艾歐尼亞靴 (+10 加速)</span>
                     </label>
                     <label
-                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg active:bg-slate-700 md:hover:bg-slate-700 transition">
+                        class="flex items-center gap-3 cursor-pointer w-full p-3 bg-slate-700/50 rounded-lg active:bg-slate-700 transition">
                         <input type="checkbox" id="cosmic-insight" class="w-5 h-5 accent-purple-500">
                         <span class="text-white">星界洞悉 (+18 加速)</span>
                     </label>
@@ -430,9 +430,17 @@
             </div>
 
             <button id="apply-settings-btn"
-                class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 rounded-xl transition transform hover:scale-105 active:scale-95">
+                class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 rounded-xl transition transform hover:scale-105 active:scale-95 shadow-lg shadow-cyan-500/20">
                 套用設定
             </button>
+
+            <!-- Danger Zone -->
+            <div class="mt-8 pt-6 border-t border-slate-700">
+                <button id="reset-all-btn"
+                    class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold py-3 rounded-xl border border-red-500/50 transition flex items-center justify-center gap-2">
+                    <span>⚠️ 重置所有狀態</span>
+                </button>
+            </div>
 
         </div>
     </div>
