@@ -74,20 +74,22 @@ function init() {
 
     // Haste modifiers - Update to toggle check based on selected role
     ionianBootsCheckbox.addEventListener('change', (e) => {
-        const role = roleSelect.value;
+        const role = spellRoleSelect.value;
+        console.log(`Updated ionian for ${role}: ${e.target.checked}`);
         hasteModifiers[role].ionian = e.target.checked;
         updateHasteIndicators();
         sessionRef.child('hasteModifiers').set(hasteModifiers);
     });
     cosmicInsightCheckbox.addEventListener('change', (e) => {
-        const role = roleSelect.value;
+        const role = spellRoleSelect.value;
+        console.log(`Updated cosmic for ${role}: ${e.target.checked}`);
         hasteModifiers[role].cosmic = e.target.checked;
         updateHasteIndicators();
         sessionRef.child('hasteModifiers').set(hasteModifiers);
     });
 
     // Update checkboxes when role changes
-    roleSelect.addEventListener('change', (e) => {
+    spellRoleSelect.addEventListener('change', (e) => {
         const role = e.target.value;
         ionianBootsCheckbox.checked = hasteModifiers[role].ionian;
         cosmicInsightCheckbox.checked = hasteModifiers[role].cosmic;
