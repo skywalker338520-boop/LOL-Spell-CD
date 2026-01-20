@@ -39,6 +39,8 @@ const ionianBootsCheckbox = document.getElementById('ionian-boots');
 const cosmicInsightCheckbox = document.getElementById('cosmic-insight');
 const warningSound = document.getElementById('warning-sound');
 const readySound = document.getElementById('ready-sound');
+const ionianDot = document.getElementById('ionian-dot');
+const cosmicDot = document.getElementById('cosmic-dot');
 
 // Initialize app
 function init() {
@@ -70,13 +72,18 @@ function init() {
     // Haste modifiers
     ionianBootsCheckbox.addEventListener('change', (e) => {
         hasteModifiers.ionianBoots = e.target.checked;
+        updateHasteIndicators();
     });
     cosmicInsightCheckbox.addEventListener('change', (e) => {
         hasteModifiers.cosmicInsight = e.target.checked;
+        updateHasteIndicators();
     });
 
     // Firebase sync
     syncWithFirebase();
+
+    // Initialize haste indicators
+    updateHasteIndicators();
 }
 
 // Initialize default spell state
@@ -104,6 +111,32 @@ function initializeDefaultState() {
             lastResetTime: 0
         };
     });
+}
+
+// Format time as M:SS or MM:SS
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Update haste indicator dots
+function updateHasteIndicators() {
+    if (hasteModifiers.ionianBoots) {
+        ionianDot.classList.remove('inactive');
+        ionianDot.classList.add('active');
+    } else {
+        ionianDot.classList.remove('active');
+        ionianDot.classList.add('inactive');
+    }
+
+    if (hasteModifiers.cosmicInsight) {
+        cosmicDot.classList.remove('inactive');
+        cosmicDot.classList.add('active');
+    } else {
+        cosmicDot.classList.remove('active');
+        cosmicDot.classList.add('inactive');
+    }
 }
 
 // Handle Start Match (Audio Unlock)
@@ -221,7 +254,7 @@ function startCooldownTimer(btn, key, duration) {
     const waterfallBg = overlay.querySelector('.waterfall-bg');
 
     // Update display immediately
-    timerText.textContent = remaining;
+    timerText.textContent = formatTime(remaining);
     if (waterfallBg) {
         waterfallBg.style.height = '100%';
     }
@@ -231,7 +264,7 @@ function startCooldownTimer(btn, key, duration) {
         state.cooldown = remaining;
 
         // Update display
-        timerText.textContent = remaining;
+        timerText.textContent = formatTime(remaining);
 
         // Waterfall effect: reduce height from 100% to 0%
         if (waterfallBg) {
