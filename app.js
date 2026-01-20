@@ -21,8 +21,11 @@ let spellStates = {};
 let timers = {};
 let longPressTimers = {};
 let hasteModifiers = {
-    ionianBoots: false,
-    cosmicInsight: false
+    top: { ionian: false, cosmic: false },
+    jg: { ionian: false, cosmic: false },
+    mid: { ionian: false, cosmic: false },
+    ad: { ionian: false, cosmic: false },
+    sup: { ionian: false, cosmic: false }
 };
 
 // DOM Elements
@@ -69,14 +72,26 @@ function init() {
         option.addEventListener('click', () => handleSpellChange(option.dataset.spell));
     });
 
-    // Haste modifiers
+    // Haste modifiers - Update to toggle check based on selected role
     ionianBootsCheckbox.addEventListener('change', (e) => {
-        hasteModifiers.ionianBoots = e.target.checked;
+        const role = roleSelect.value;
+        hasteModifiers[role].ionian = e.target.checked;
         updateHasteIndicators();
+        sessionRef.child('hasteModifiers').set(hasteModifiers);
     });
     cosmicInsightCheckbox.addEventListener('change', (e) => {
-        hasteModifiers.cosmicInsight = e.target.checked;
+        const role = roleSelect.value;
+        hasteModifiers[role].cosmic = e.target.checked;
         updateHasteIndicators();
+        sessionRef.child('hasteModifiers').set(hasteModifiers);
+    });
+
+    // Update checkboxes when role changes
+    roleSelect.addEventListener('change', (e) => {
+        const role = e.target.value;
+        ionianBootsCheckbox.checked = hasteModifiers[role].ionian;
+        cosmicInsightCheckbox.checked = hasteModifiers[role].cosmic;
+        renderSpellOptions(role); // Also re-render spell options if needed
     });
 
     // Firebase sync
@@ -122,21 +137,30 @@ function formatTime(seconds) {
 
 // Update haste indicator dots
 function updateHasteIndicators() {
-    if (hasteModifiers.ionianBoots) {
-        ionianDot.classList.remove('inactive');
-        ionianDot.classList.add('active');
-    } else {
-        ionianDot.classList.remove('active');
-        ionianDot.classList.add('inactive');
-    }
+    ['top', 'jg', 'mid', 'ad', 'sup'].forEach(role => {
+        const ionianDots = document.querySelectorAll(`.haste-dot[data-role="${role}"][data-haste="ionian"]`);
+        const cosmicDots = document.querySelectorAll(`.haste-dot[data-role="${role}"][data-haste="cosmic"]`);
 
-    if (hasteModifiers.cosmicInsight) {
-        cosmicDot.classList.remove('inactive');
-        cosmicDot.classList.add('active');
-    } else {
-        cosmicDot.classList.remove('active');
-        cosmicDot.classList.add('inactive');
-    }
+        ionianDots.forEach(dot => {
+            if (hasteModifiers[role].ionian) {
+                dot.classList.remove('inactive');
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+                dot.classList.add('inactive');
+            }
+        });
+
+        cosmicDots.forEach(dot => {
+            if (hasteModifiers[role].cosmic) {
+                dot.classList.remove('inactive');
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+                dot.classList.add('inactive');
+            }
+        });
+    });
 }
 
 // Handle Start Match (Audio Unlock)
@@ -201,7 +225,8 @@ function handleSpellClick(btn) {
 
     // Calculate cooldown with haste
     const baseCooldown = SPELL_COOLDOWNS[state.spell];
-    const totalHaste = (hasteModifiers.ionianBoots ? 10 : 0) + (hasteModifiers.cosmicInsight ? 18 : 0);
+    const roleHaste = hasteModifiers[role];
+    const totalHaste = (roleHaste.ionian ? 10 : 0) + (roleHaste.cosmic ? 18 : 0);
     const actualCooldown = Math.round(baseCooldown * (100 / (100 + totalHaste)));
 
     // Update state
@@ -429,6 +454,12 @@ function syncWithFirebase() {
                 hasteModifiers
             });
             return;
+        }
+
+        // Update haste modifiers if present
+        if (data.hasteModifiers) {
+            hasteModifiers = data.hasteModifiers;
+            updateHasteIndicators();
         }
 
         // Update local state
